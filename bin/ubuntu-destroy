@@ -1,0 +1,161 @@
+#!/bin/bash
+# FeNix Ubuntu Container Destroy Command
+# Interactive container removal with ubuntu focus
+
+set -e
+
+# Handle help option
+if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]] || [[ "$1" == "help" ]]; then
+    echo "🔥 FeNix Container Destroyer"
+    echo "============================"
+    echo ""
+    echo "Usage: ubuntu-destroy"
+    echo ""
+    echo "Interactively select and destroy Docker containers with:"
+    echo "  • Visual container selection menu"
+    echo "  • Ubuntu container highlighting"
+    echo "  • Safe confirmation for non-ubuntu containers"
+    echo "  • Automatic cleanup of unused resources"
+    echo ""
+    echo "Options:"
+    echo "  --help      Show this help message"
+    echo ""
+    echo "Navigation:"
+    echo "  • Enter number to select container"
+    echo "  • Enter 'c' to cancel operation"
+    echo ""
+    echo "Related commands:"
+    echo "  ubuntu-start    # Create new ubuntu container"
+    echo "  edc             # Access existing containers"
+    echo ""
+    exit 0
+fi
+
+# FeNix branding
+echo "🔥 FeNix Container Destroyer"
+echo "============================"
+
+# Check if Docker is available
+if ! command -v docker >/dev/null 2>&1; then
+    echo "❌ Docker not found. Please install Docker first."
+    exit 1
+fi
+
+# Check if Docker daemon is running
+if ! docker info >/dev/null 2>&1; then
+    echo "❌ Docker daemon is not running. Please start Docker."
+    exit 1
+fi
+
+# Get running containers
+CONTAINERS=$(docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}")
+
+if [ -z "$(docker ps -q)" ]; then
+    echo "⚠️ No running containers found."
+    echo "💡 Use 'start' command to create an ubuntu-dev container"
+    exit 0
+fi
+
+echo ""
+echo "🐳 Running containers:"
+echo "$CONTAINERS"
+echo ""
+
+# Get container info for the menu (name, image, status, created time)
+readarray -t CONTAINER_INFO < <(docker ps --format "{{.Names}}|{{.Image}}|{{.Status}}|{{.CreatedAt}}")
+
+if [ ${#CONTAINER_INFO[@]} -eq 0 ]; then
+    echo "⚠️ No running containers found."
+    exit 0
+fi
+
+# Build menu options with more details
+MENU_OPTIONS=()
+CONTAINER_NAMES=()
+for info in "${CONTAINER_INFO[@]}"; do
+    IFS='|' read -r name image status created <<< "$info"
+    # Truncate long image names and status for cleaner display
+    short_image=$(echo "$image" | cut -d: -f1 | tail -c 20)
+    short_status=$(echo "$status" | cut -c 1-25)
+    
+    # Highlight ubuntu containers with emoji
+    if [[ "$image" == *"ubuntu"* ]]; then
+        MENU_OPTIONS+=("🐧 $name ($short_image, $short_status)")
+    else
+        MENU_OPTIONS+=("📦 $name ($short_image, $short_status)")
+    fi
+    CONTAINER_NAMES+=("$name")
+done
+
+echo "Select a container to destroy:"
+echo ""
+PS3="Pick a container number (or 'c' to cancel): "
+select CONTAINER_CHOICE in "${MENU_OPTIONS[@]}"; do
+    # Check for 'c' shortcut before processing menu selection
+    if [[ "$REPLY" == "c" || "$REPLY" == "C" ]]; then
+        echo "❌ Operation cancelled."
+        exit 0
+    fi
+    
+    case $CONTAINER_CHOICE in
+        "")
+            echo "⚠️ Invalid selection. Please try again."
+            ;;
+        *)
+            # Extract the container name from the selected index
+            CONTAINER_NAME="${CONTAINER_NAMES[$((REPLY-1))]}"
+            
+            # Confirmation for non-ubuntu containers
+            if [[ "$CONTAINER_NAME" != "ubuntu-dev" ]] && [[ ! "$CONTAINER_CHOICE" == *"ubuntu"* ]]; then
+                echo ""
+                echo "⚠️  You selected '$CONTAINER_NAME' which is not an ubuntu container."
+                read -p "Are you sure you want to destroy it? [y/N]: " confirm
+                if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+                    echo "❌ Operation cancelled."
+                    exit 0
+                fi
+            fi
+            
+            echo ""
+            echo "🗑️ Stopping and removing container '$CONTAINER_NAME'..."
+            
+            if docker rm -f "$CONTAINER_NAME" 2>/dev/null; then
+                echo "✅ Container '$CONTAINER_NAME' removed successfully."
+                
+                # Special message for ubuntu-dev container
+                if [[ "$CONTAINER_NAME" == "ubuntu-dev" ]]; then
+                    echo "🐧 Ubuntu development container destroyed."
+                    echo "💡 Use 'start' command to create a new ubuntu-dev container"
+                fi
+            else
+                echo "⚠️ Failed to remove container '$CONTAINER_NAME'."
+                exit 1
+            fi
+            
+            echo ""
+            echo "🧹 Cleaning up unused Docker resources..."
+            
+            # Clean up volumes (with confirmation)
+            UNUSED_VOLUMES=$(docker volume ls -qf dangling=true | wc -l)
+            if [ "$UNUSED_VOLUMES" -gt 0 ]; then
+                echo "🗂️  Found $UNUSED_VOLUMES unused volume(s)"
+                docker volume prune -f
+                echo "✅ Unused volumes cleaned up"
+            else
+                echo "✅ No unused volumes to clean"
+            fi
+            
+            # Clean up networks if any
+            UNUSED_NETWORKS=$(docker network ls --filter "dangling=true" -q | wc -l)
+            if [ "$UNUSED_NETWORKS" -gt 0 ]; then
+                echo "🌐 Cleaning up unused networks..."
+                docker network prune -f
+            fi
+            
+            echo ""
+            echo "🎉 Cleanup complete!"
+            echo "💡 Container resources have been freed up"
+            break
+            ;;
+    esac
+done

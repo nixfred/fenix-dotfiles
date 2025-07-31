@@ -406,6 +406,12 @@ if [ -d ~/.fenix ]; then
     export FENIX_VERSION="1.0"
 fi
 
+# Add FeNix dotfiles bin directory to PATH (for start/destroy commands)
+FENIX_DOTFILES_BIN="$(dirname "$(realpath "${BASH_SOURCE[0]}")")/bin"
+if [ -d "$FENIX_DOTFILES_BIN" ]; then
+    export PATH="$FENIX_DOTFILES_BIN:$PATH"
+fi
+
 # Container management functions for FeNix
 if command -v docker >/dev/null 2>&1; then
     # Container status check

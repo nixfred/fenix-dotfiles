@@ -1,0 +1,172 @@
+#!/bin/bash
+# FeNix Ubuntu Container Start Command
+# Creates and bootstraps ubuntu-dev container locally
+
+set -e
+
+# FeNix branding
+echo "🔥 FeNix Ubuntu Container Starter"
+echo "=================================="
+
+# Handle help option
+if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]] || [[ "$1" == "help" ]]; then
+    echo ""
+    echo "Usage: ubuntu-start [hostname]"
+    echo ""
+    echo "Creates and starts an Ubuntu 22.04 development container with:"
+    echo "  • 40+ development tools (git, python3, nodejs, build tools)"
+    echo "  • America/New_York timezone"
+    echo "  • Custom FeNix shell configuration"
+    echo ""
+    echo "Options:"
+    echo "  hostname    Container hostname (default: ubuntu-dev)"
+    echo "  --help      Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  ubuntu-start              # Start with default hostname"
+    echo "  ubuntu-start myproject    # Start with custom hostname"
+    echo ""
+    echo "After creation, use:"
+    echo "  edc                       # Access container interactively"
+    echo "  ubuntu-destroy            # Remove container when done"
+    echo ""
+    exit 0
+fi
+
+# Accept hostname as first argument, default to 'ubuntu-dev'
+HOSTNAME="${1:-ubuntu-dev}"
+
+# Check if Docker is available
+if ! command -v docker >/dev/null 2>&1; then
+    echo "❌ Docker not found. Please install Docker first."
+    exit 1
+fi
+
+# Check if Docker daemon is running
+if ! docker info >/dev/null 2>&1; then
+    echo "❌ Docker daemon is not running. Please start Docker."
+    exit 1
+fi
+
+# Check if container already exists
+if docker ps -a --format "{{.Names}}" | grep -q "^ubuntu-dev$"; then
+    echo "⚠️  Container 'ubuntu-dev' already exists."
+    echo "🧼 Cleaning up existing container..."
+    docker rm -f ubuntu-dev 2>/dev/null || true
+fi
+
+echo ""
+echo "🚀 Starting new 'ubuntu-dev' container with hostname: $HOSTNAME..."
+echo "   📥 Pulling Ubuntu 22.04 image (if needed)..."
+
+# Create bootstrap script content (embedded for portability)
+BOOTSTRAP_SCRIPT='#!/bin/bash
+set -e
+
+# Progress tracking
+TOTAL_STEPS=6
+CURRENT_STEP=0
+
+show_progress() {
+    local step_name="$1"
+    CURRENT_STEP=$((CURRENT_STEP + 1))
+    local percent=$((CURRENT_STEP * 100 / TOTAL_STEPS))
+    local filled=$((CURRENT_STEP * 10 / TOTAL_STEPS))
+    local empty=$((10 - filled))
+    
+    local bar=""
+    for ((i=0; i<filled; i++)); do bar+="█"; done
+    for ((i=0; i<empty; i++)); do bar+="░"; done
+    
+    echo ""
+    echo "🚀 [$CURRENT_STEP/$TOTAL_STEPS] $step_name"
+    echo "   $bar $percent%"
+    echo ""
+}
+
+show_progress "Starting Ubuntu 22.04 Docker container bootstrap"
+
+# Set timezone to America/New_York
+show_progress "Setting timezone to America/New_York"
+ln -sf /usr/share/zoneinfo/America/New_York /etc/localtime
+echo "America/New_York" > /etc/timezone
+
+# Install essential tools
+show_progress "Installing essential tools (40+ packages - this takes ~2 minutes)"
+echo "📦 Updating package lists..."
+apt update >/dev/null 2>&1
+echo "📦 Installing packages (progress will show below)..."
+DEBIAN_FRONTEND=noninteractive apt install -y --show-progress --no-install-recommends \
+curl wget ca-certificates gnupg lsb-release bash-completion software-properties-common apt-transport-https \
+unzip zip tar gzip bzip2 xz-utils p7zip-full rsync file tree mlocate man-db less time \
+net-tools iproute2 iputils-ping traceroute dnsutils whois tcpdump nmap telnet socat netcat-openbsd \
+openssh-client openssh-server ufw fail2ban iptables acl \
+htop iotop iftop lsof strace ncdu glances smartmontools neofetch lshw \
+nano vim mc ranger tmux screen zsh fzf ripgrep fd-find bat \
+build-essential git make cmake python3 python3-pip python3-venv python3-dev nodejs npm jq \
+>/dev/null 2>&1
+
+# Configure locale
+show_progress "Configuring locale to en_US.UTF-8"
+echo "en_US.UTF-8 UTF-8" > /etc/locale.gen
+locale-gen >/dev/null 2>&1
+echo "LANG=en_US.UTF-8" > /etc/locale.conf
+
+# Load custom .bashrc if available
+show_progress "Loading custom FeNix shell configuration"
+if [ -f "/mnt/shared/.bashrc" ]; then
+    echo "📄 Loading custom .bashrc from FeNix..."
+    cp /mnt/shared/.bashrc /root/.bashrc
+else
+    echo "📄 Using default .bashrc configuration..."
+    echo "alias ll=\"ls -la\"" >> /root/.bashrc
+    echo "alias la=\"ls -A\"" >> /root/.bashrc
+    echo "alias l=\"ls -CF\"" >> /root/.bashrc
+    echo "PS1=\"\\[\\033[01;32m\\]\\u@\\h\\[\\033[00m\\]:\\[\\033[01;34m\\]\\w\\[\\033[00m\\]\\$ \"" >> /root/.bashrc
+fi
+
+# Clean up
+show_progress "Cleaning up installation files"
+apt clean >/dev/null 2>&1
+rm -rf /var/lib/apt/lists/* >/dev/null 2>&1
+
+echo ""
+echo "✅ Bootstrap complete! Container ready for use."
+echo "🐳 Container: ubuntu-dev ($HOSTNAME)"
+echo "🕐 Timezone: America/New_York"
+echo "📦 Tools: 40+ development packages installed"
+echo ""
+'
+
+# Create temporary bootstrap script
+TEMP_BOOTSTRAP=$(mktemp)
+echo "$BOOTSTRAP_SCRIPT" > "$TEMP_BOOTSTRAP"
+
+# Start container with volume mounts
+docker run -d --name ubuntu-dev \
+  --hostname "$HOSTNAME" \
+  -v "$TEMP_BOOTSTRAP:/bootstrap.sh:ro" \
+  ubuntu:22.04 \
+  tail -f /dev/null
+
+echo ""
+echo "🔧 Running bootstrap script (this takes 2-3 minutes)..."
+echo "   ⏱️  Installing 40+ packages, configuring timezone, setting up tools..."
+echo "   💡 Progress details will show below:"
+echo ""
+
+# Execute bootstrap
+docker exec ubuntu-dev chmod +x /bootstrap.sh
+docker exec -it ubuntu-dev /bootstrap.sh
+
+# Clean up temporary file
+rm -f "$TEMP_BOOTSTRAP"
+
+echo ""
+echo "✅ Bootstrap complete. Dropping you into the container shell..."
+echo "💡 Use 'edc' command later for quick container access"
+echo "💡 Use 'destroy' command to remove this container when done"
+echo ""
+
+# Drop into container
+docker exec -it ubuntu-dev bash
