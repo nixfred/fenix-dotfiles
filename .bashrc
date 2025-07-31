@@ -7,7 +7,7 @@ case $- in
 esac
 
 # Clear screen on .bashrc load for fresh start
-clear
+# clear  # Commented out to preserve terminal history
 
 ######################################################################
 # DYNAMIC TOOL DETECTION - No hardcoded paths!
