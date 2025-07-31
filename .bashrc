@@ -407,9 +407,8 @@ if [ -d ~/.fenix ]; then
 fi
 
 # Add FeNix dotfiles bin directory to PATH (for start/destroy commands)
-FENIX_DOTFILES_BIN="$(dirname "$(realpath "${BASH_SOURCE[0]}")")/bin"
-if [ -d "$FENIX_DOTFILES_BIN" ]; then
-    export PATH="$FENIX_DOTFILES_BIN:$PATH"
+if [ -d "/home/pi/fenix-dotfiles/bin" ]; then
+    export PATH="/home/pi/fenix-dotfiles/bin:$PATH"
 fi
 
 # Container management functions for FeNix
