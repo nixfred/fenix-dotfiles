@@ -2,7 +2,7 @@
 # FeNix Ubuntu Container Destroy Command
 # Interactive container removal with ubuntu focus
 
-set -e
+set -euo pipefail
 
 # Handle help option
 if [[ "$1" == "--help" ]] || [[ "$1" == "-h" ]] || [[ "$1" == "help" ]]; then
@@ -102,8 +102,20 @@ select CONTAINER_CHOICE in "${MENU_OPTIONS[@]}"; do
             echo "⚠️ Invalid selection. Please try again."
             ;;
         *)
+            # Validate array bounds to prevent out-of-bounds access
+            if [[ "$REPLY" -lt 1 ]] || [[ "$REPLY" -gt "${#CONTAINER_NAMES[@]}" ]]; then
+                echo "⚠️ Invalid selection. Please try again."
+                continue
+            fi
+            
             # Extract the container name from the selected index
             CONTAINER_NAME="${CONTAINER_NAMES[$((REPLY-1))]}"
+            
+            # Validate container name to prevent command injection
+            if [[ ! "$CONTAINER_NAME" =~ ^[a-zA-Z0-9_.-]+$ ]]; then
+                echo "⚠️ Invalid container name format. Skipping for security."
+                continue
+            fi
             
             # Confirmation for non-ubuntu containers
             if [[ "$CONTAINER_NAME" != "ubuntu-dev" ]] && [[ ! "$CONTAINER_CHOICE" == *"ubuntu"* ]]; then

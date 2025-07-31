@@ -2,7 +2,24 @@
 # FeNix Ubuntu Container Start Command
 # Creates and bootstraps ubuntu-dev container locally
 
-set -e
+set -euo pipefail
+
+# Input validation function
+validate_hostname() {
+    local hostname="$1"
+    # Allow only alphanumeric, dash, and underscore for container hostnames
+    if [[ ! "$hostname" =~ ^[a-zA-Z0-9_-]+$ ]]; then
+        echo "Error: Invalid hostname contains unsafe characters: $hostname" >&2
+        echo "Hostname must contain only letters, numbers, dashes, and underscores" >&2
+        return 1
+    fi
+    # Check length limits (Docker container name limits)
+    if [[ ${#hostname} -gt 63 ]]; then
+        echo "Error: Hostname too long (max 63 characters): $hostname" >&2
+        return 1
+    fi
+    return 0
+}
 
 # FeNix branding
 echo "🔥 FeNix Ubuntu Container Starter"
@@ -35,6 +52,11 @@ fi
 
 # Accept hostname as first argument, default to 'ubuntu-dev'
 HOSTNAME="${1:-ubuntu-dev}"
+
+# Validate hostname
+if ! validate_hostname "$HOSTNAME"; then
+    exit 1
+fi
 
 # Check if Docker is available
 if ! command -v docker >/dev/null 2>&1; then

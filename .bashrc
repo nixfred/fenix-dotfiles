@@ -277,14 +277,14 @@ dirsize() {
     du -sh */ 2>/dev/null | sort -hr
 }
 
-# Smart cd with automatic ls
-cd() {
+# Smart cd with automatic ls (use 'cdd' to avoid breaking scripts)
+cdd() {
     builtin cd "$@" && ls -la
 }
 
 # Make and change to directory
 mkcd() {
-    mkdir -p "$1" && cd "$1"
+    mkdir -p "$1" && builtin cd "$1"
 }
 
 # Weather function with timeout and error handling
