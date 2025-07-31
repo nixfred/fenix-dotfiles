@@ -155,9 +155,10 @@ echo "   ⏱️  Installing 40+ packages, configuring timezone, setting up tools
 echo "   💡 Progress details will show below:"
 echo ""
 
-# Execute bootstrap
-docker exec ubuntu-dev chmod +x /bootstrap.sh
-docker exec -it ubuntu-dev /bootstrap.sh
+# Execute bootstrap (copy to writable location first)
+docker exec ubuntu-dev cp /bootstrap.sh /tmp/bootstrap.sh
+docker exec ubuntu-dev chmod +x /tmp/bootstrap.sh
+docker exec -it ubuntu-dev /tmp/bootstrap.sh
 
 # Clean up temporary file
 rm -f "$TEMP_BOOTSTRAP"
