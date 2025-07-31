@@ -1,0 +1,115 @@
+# =% FeNix Readline Configuration - Enhanced terminal experience
+
+# Enable 8-bit input/output
+set meta-flag on
+set input-meta on
+set output-meta on
+set convert-meta off
+
+# Completion settings
+set completion-ignore-case on
+set completion-map-case on
+set show-all-if-ambiguous on
+set show-all-if-unmodified on
+set colored-completion-prefix on
+set colored-stats on
+set visible-stats on
+set mark-symlinked-directories on
+set match-hidden-files off
+
+# History settings
+set history-preserve-point on
+set history-size 10000
+set enable-bracketed-paste on
+
+# Bell settings
+set bell-style none
+
+# Editing settings
+set editing-mode emacs
+set keymap emacs
+
+# Key bindings for history search
+"\e[A": history-search-backward
+"\e[B": history-search-forward
+"\e[C": forward-char
+"\e[D": backward-char
+
+# Alt + arrow keys for word movement
+"\e\e[C": forward-word
+"\e\e[D": backward-word
+
+# Home and End keys
+"\e[1~": beginning-of-line
+"\e[4~": end-of-line
+"\e[H": beginning-of-line
+"\e[F": end-of-line
+
+# Delete key
+"\e[3~": delete-char
+
+# Page Up/Down for history
+"\e[5~": history-search-backward
+"\e[6~": history-search-forward
+
+# Ctrl+Left/Right for word movement
+"\e[1;5C": forward-word
+"\e[1;5D": backward-word
+
+# Tab completion behavior
+TAB: menu-complete
+"\e[Z": menu-complete-backward
+
+# Make Tab cycle through completions
+set menu-complete-display-prefix on
+
+# Show completion matches immediately
+set show-all-if-ambiguous on
+
+# Perform file completion in a case insensitive fashion
+set completion-ignore-case on
+
+# Treat hyphens and underscores as equivalent
+set completion-map-case on
+
+# Display matches for ambiguous patterns at first tab press
+set show-all-if-ambiguous on
+
+# Append slash to completed directories
+set mark-directories on
+set mark-symlinked-directories on
+
+# Color files by types
+set colored-stats on
+
+# Don't complete hidden files unless explicitly requested
+set match-hidden-files off
+
+# Allow completion to be shown even if there's a prefix
+set show-all-if-unmodified on
+
+# FeNix specific key bindings
+# Ctrl+G for git status in current directory
+"\C-g": "git status\C-m"
+
+# Ctrl+L for ls -la
+"\C-l": "ls -la\C-m"
+
+# Alt+H for history search
+"\eh": "history | grep "
+
+# Alt+D for directory navigation
+"\ed": "cd "
+
+# Alt+E for editing with nano
+"\ee": "nano "
+
+# Quick FeNix commands
+# Alt+P for project jump
+"\ep": "j proj\C-m"
+
+# Alt+S for system info
+"\es": "neo\C-m"
+
+# Alt+R for reload shell
+"\er": "source ~/.bashrc\C-m"

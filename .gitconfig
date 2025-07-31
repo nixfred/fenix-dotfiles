@@ -1,0 +1,93 @@
+# =% FeNix Git Configuration
+# Public git settings - no personal information
+
+[core]
+    editor = nano
+    autocrlf = input
+    filemode = true
+    ignorecase = false
+
+[init]
+    defaultBranch = main
+
+[push]
+    default = simple
+    autoSetupRemote = true
+
+[pull]
+    rebase = false
+
+[branch]
+    autosetupmerge = true
+
+[merge]
+    tool = vimdiff
+
+[diff]
+    tool = vimdiff
+    colorMoved = default
+
+[color]
+    ui = auto
+    branch = auto
+    diff = auto
+    status = auto
+
+[color "branch"]
+    current = yellow reverse
+    local = yellow
+    remote = green
+
+[color "diff"]
+    meta = yellow bold
+    frag = magenta bold
+    old = red bold
+    new = green bold
+
+[color "status"]
+    added = yellow
+    changed = green
+    untracked = cyan
+
+[alias]
+    st = status
+    co = checkout
+    br = branch
+    ci = commit
+    ca = commit -a
+    cm = commit -m
+    cam = commit -am
+    unstage = reset HEAD --
+    last = log -1 HEAD
+    visual = !gitk
+    tree = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+    lg = log --oneline --graph --decorate --all
+    ll = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --numstat
+    ld = log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --date=relative
+    ls = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate
+    conflicts = diff --name-only --diff-filter=U
+    undo = reset --soft HEAD^
+    amend = commit --amend
+    wipe = !git add -A && git commit -qm 'WIPE SAVEPOINT' && git reset HEAD~1 --hard
+    bclean = "!f() { git branch --merged ${1-master} | grep -v " ${1-master}$" | xargs -r git branch -d; }; f"
+    bdone = "!f() { git checkout ${1-master} && git up && git bclean ${1-master}; }; f"
+
+[help]
+    autocorrect = 1
+
+[rerere]
+    enabled = true
+
+[filter "lfs"]
+    clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f
+    process = git-lfs filter-process
+    required = true
+
+# FeNix specific settings
+[includeIf "gitdir:~/.fenix/"]
+    path = ~/.fenix/gitconfig-fenix
+
+# Include private git config if it exists
+[include]
+    path = ~/.gitconfig_private
