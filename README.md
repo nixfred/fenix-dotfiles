@@ -1,5 +1,14 @@
 # 🌍 FeNix Public Dotfiles
 
+> **⚠️ IMPORTANT: Do NOT install this repository directly!**
+> 
+> This repository is automatically installed by the main FeNix system. 
+> **Start here instead:** 👉 **[nixfred/fenix](https://github.com/nixfred/fenix)**
+>
+> ```bash
+> curl -s https://raw.githubusercontent.com/nixfred/fenix/main/bootstrap.sh | bash
+> ```
+
 Public shell configurations for the FeNix Phoenix System - works on any Linux distribution and architecture.
 
 ## What's Included

@@ -2,6 +2,18 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with the FeNix Public Dotfiles repository.
 
+## IMPORTANT: Installation Starting Point
+
+**This repository should NOT be installed directly.** FeNix installation always starts from the main repository:
+
+👉 **Start here:** [nixfred/fenix](https://github.com/nixfred/fenix)
+
+```bash
+curl -s https://raw.githubusercontent.com/nixfred/fenix/main/bootstrap.sh | bash
+```
+
+The bootstrap script in the main repository automatically clones and installs this dotfiles repository as part of the complete FeNix system setup.
+
 ## Repository Purpose
 
 This repository contains the public shell configurations for the FeNix Phoenix System. These are portable, dynamic configurations that work across any Linux distribution and architecture without requiring private information or secrets.
