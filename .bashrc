@@ -64,11 +64,15 @@ alias l='ls -CFh'
 alias ll='ls -alFh'
 alias la='ls -Ah'
 alias lt='ls -lath'
+
+# Git shortcut
+alias gitc='gitcommit'
 alias cls='clear && ls'
 alias mkdir='mkdir -pv'
 alias wget='wget -c'
 alias tarx='tar -xvzf'
 alias tarc='tar -cvzf'
+
 
 # Enhanced tools (if available)
 if command -v bat >/dev/null 2>&1; then
@@ -411,22 +415,7 @@ if [ -d "$HOME/.fenix/dotfiles/bin" ]; then
     export PATH="$HOME/.fenix/dotfiles/bin:$PATH"
 fi
 
-# Container management functions for FeNix
-if command -v docker >/dev/null 2>&1; then
-    # Container status check
-    containers() {
-        docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
-    }
-    
-    # Quick container logs
-    clogs() {
-        if [ $# -eq 0 ]; then
-            echo "Usage: clogs <container_name>"
-            return 1
-        fi
-        docker logs -f "$1"
-    }
-fi
+# Container management functions moved to .bash_functions
 
 ######################################################################
 # FINAL SETUP
