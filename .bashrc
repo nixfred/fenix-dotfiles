@@ -226,9 +226,23 @@ pp() {
             case "$target_host" in
                 "list"|"ls")
                     echo "Available FeNix hosts:"
-                    echo "  Main: $FENIX_MAIN_HOST"
-                    echo "  Remotes: $FENIX_REMOTE_HOSTS"
-                    echo "  Default: $FENIX_DEFAULT_REMOTE"
+                    if [ -n "$FENIX_MAIN_HOST" ]; then
+                        echo "  Main: $FENIX_MAIN_HOST"
+                    else
+                        echo "  Main: (not configured)"
+                    fi
+                    if [ -n "$FENIX_REMOTE_HOSTS" ]; then
+                        echo "  Remotes: $FENIX_REMOTE_HOSTS"
+                    else
+                        echo "  Remotes: (none configured)"
+                    fi
+                    if [ -n "$FENIX_DEFAULT_REMOTE" ]; then
+                        echo "  Default: $FENIX_DEFAULT_REMOTE"
+                    else
+                        echo "  Default: (not set)"
+                        echo ""
+                        echo "⚠️  No hosts configured. Run 'setup_fenix_hosts' to configure."
+                    fi
                     return 0
                     ;;
                 "help"|"-h"|"--help")
