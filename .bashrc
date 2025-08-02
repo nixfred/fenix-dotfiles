@@ -209,13 +209,142 @@ fi
 # MULTI-HOST SMART FUNCTIONS
 ######################################################################
 
-# Smart SSH function - connects between pi5 ↔ ron, others to pi5
+# Smart SSH function - Multi-host aware with role support
 pp() {
-    case $(hostname) in
-        "ron") ssh pi5 ;;
-        "pi5") ssh ron ;;
-        *) ssh pi5 ;;  # Default target for non-Pi machines
-    esac
+    local target_host="$1"
+    
+    # Load FeNix host configuration if available
+    if [ -f "$HOME/.fenix/host-manager.sh" ]; then
+        source "$HOME/.fenix/host-manager.sh"
+        if load_fenix_hosts 2>/dev/null; then
+            # Multi-host mode - use configuration
+            if [ -z "$target_host" ]; then
+                target_host="$FENIX_DEFAULT_REMOTE"
+            fi
+            
+            # Handle special commands
+            case "$target_host" in
+                "list"|"ls")
+                    echo "Available FeNix hosts:"
+                    echo "  Main: $FENIX_MAIN_HOST"
+                    echo "  Remotes: $FENIX_REMOTE_HOSTS"
+                    echo "  Default: $FENIX_DEFAULT_REMOTE"
+                    return 0
+                    ;;
+                "help"|"-h"|"--help")
+                    echo "Usage: pp [hostname|list|help]"
+                    echo "  pp              - Connect to default remote ($FENIX_DEFAULT_REMOTE)"
+                    echo "  pp <hostname>   - Connect to specific host"
+                    echo "  pp list         - Show available hosts"
+                    echo "  pp help         - Show this help"
+                    return 0
+                    ;;
+            esac
+            
+            # Validate host exists
+            if validate_fenix_host "$target_host"; then
+                echo "🔗 Connecting to $target_host..."
+                ssh "$target_host"
+            else
+                echo "❌ Unknown host: $target_host"
+                echo "Available hosts: $FENIX_MAIN_HOST $FENIX_REMOTE_HOSTS"
+                echo "Use 'pp list' to see all hosts"
+                return 1
+            fi
+        else
+            # Configuration exists but failed to load - fallback
+            echo "⚠️  FeNix configuration found but failed to load, using legacy mode"
+            pp_legacy "$target_host"
+        fi
+    else
+        # No configuration - use legacy mode
+        pp_legacy "$target_host"
+    fi
+}
+
+# Legacy pp function for backward compatibility
+pp_legacy() {
+    local target_host="$1"
+    
+    if [ -n "$target_host" ]; then
+        ssh "$target_host"
+    else
+        # Original hardcoded logic as fallback
+        case $(hostname) in
+            "ron") ssh pi5 ;;
+            "pi5") ssh ron ;;
+            *) ssh pi5 ;;  # Default target for non-Pi machines
+        esac
+    fi
+}
+
+# Multi-host command execution functions
+pp-all() {
+    local command="$*"
+    if [ -z "$command" ]; then
+        echo "Usage: pp-all <command>"
+        echo "Example: pp-all 'docker ps'"
+        return 1
+    fi
+    
+    if [ -f "$HOME/.fenix/host-manager.sh" ]; then
+        source "$HOME/.fenix/host-manager.sh"
+        if load_fenix_hosts 2>/dev/null; then
+            echo "🚀 Running '$command' on all FeNix clients..."
+            for host in $FENIX_REMOTE_HOSTS; do
+                echo
+                echo "📍 $host:"
+                ssh -o ConnectTimeout=10 "$host" "$command" 2>/dev/null || echo "❌ Failed to connect to $host"
+            done
+        else
+            echo "❌ FeNix configuration not available"
+            return 1
+        fi
+    else
+        echo "❌ FeNix multi-host system not installed"
+        return 1
+    fi
+}
+
+# Role-based command execution
+pp-role() {
+    local role="$1"
+    shift
+    local command="$*"
+    
+    if [ -z "$role" ] || [ -z "$command" ]; then
+        echo "Usage: pp-role <role> <command>"
+        echo "Example: pp-role development 'git pull'"
+        return 1
+    fi
+    
+    if [ -f "$HOME/.fenix/host-manager.sh" ]; then
+        source "$HOME/.fenix/host-manager.sh"
+        if load_fenix_hosts 2>/dev/null; then
+            echo "🎯 Running '$command' on all '$role' clients..."
+            local found_hosts=""
+            for host in $FENIX_REMOTE_HOSTS; do
+                local host_role=$(get_host_role "$host")
+                if [ "$host_role" = "$role" ]; then
+                    found_hosts="$found_hosts $host"
+                    echo
+                    echo "📍 $host ($role):"
+                    ssh -o ConnectTimeout=10 "$host" "$command" 2>/dev/null || echo "❌ Failed to connect to $host"
+                fi
+            done
+            
+            if [ -z "$found_hosts" ]; then
+                echo "❌ No hosts found with role '$role'"
+                echo "Available roles: $(echo "$FENIX_HOST_ROLES" | tr ' ' '\n' | cut -d: -f2 | sort -u | tr '\n' ' ')"
+            fi
+        else
+            echo "❌ FeNix configuration not available"
+            return 1
+        fi
+    else
+        echo "❌ FeNix multi-host system not installed"
+        return 1
+    fi
 }
 
 # Jump to frequently used directories with dynamic detection
