@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="720" viewBox="0 0 1440 720" role="img" aria-labelledby="title desc">
+  <title id="title">FeNix Public Dotfiles</title>
+  <desc id="desc">Portable Bash configuration fans out into navigation, Git, multi-host SSH, monitoring, and Docker workflows.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#10070b"/><stop offset="1" stop-color="#071014"/></linearGradient>
+    <linearGradient id="fire" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#ff3f46"/><stop offset=".5" stop-color="#ff9c2e"/><stop offset="1" stop-color="#ffe36b"/></linearGradient>
+    <pattern id="grid" width="46" height="46" patternUnits="userSpaceOnUse"><path d="M46 0H0V46" fill="none" stroke="#ff9141" stroke-opacity=".055"/></pattern>
+    <filter id="glow"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <rect width="1440" height="720" fill="url(#bg)"/><rect width="1440" height="720" fill="url(#grid)"/>
+  <text x="720" y="112" text-anchor="middle" fill="url(#fire)" font-family="monospace" font-size="65" font-weight="700" letter-spacing="7" filter="url(#glow)">FENIX DOTFILES</text>
+  <text x="720" y="162" text-anchor="middle" fill="#bda69d" font-family="monospace" font-size="18" letter-spacing="4">ONE BASH ENVIRONMENT · MANY MACHINES</text>
+  <g font-family="monospace">
+    <g transform="translate(520 242)"><rect width="400" height="150" rx="16" fill="#1b1012" stroke="#ff8a39" stroke-width="3"/><circle cx="28" cy="28" r="7" fill="#ff5f57"/><circle cx="52" cy="28" r="7" fill="#febc2e"/><circle cx="76" cy="28" r="7" fill="#28c840"/><text x="200" y="78" text-anchor="middle" fill="#ffc067" font-size="23">~/.bashrc</text><text x="200" y="112" text-anchor="middle" fill="#a78d85" font-size="15">dynamic shell layer</text></g>
+    <g stroke="url(#fire)" stroke-width="4" fill="none" opacity=".72"><path d="M720 392v72H218v44"/><path d="M720 392v116H468"/><path d="M720 392v116"/><path d="M720 392v116h252"/><path d="M720 392v72h502v44"/></g>
+    <g fill="#101419" stroke-width="2">
+      <rect x="78" y="508" width="280" height="116" rx="13" stroke="#ff684f"/><rect x="328" y="508" width="280" height="116" rx="13" stroke="#ff9c39"/><rect x="580" y="508" width="280" height="116" rx="13" stroke="#ffd45a"/><rect x="832" y="508" width="280" height="116" rx="13" stroke="#61d9ff"/><rect x="1082" y="508" width="280" height="116" rx="13" stroke="#9d83ff"/>
+    </g>
+    <g text-anchor="middle" font-size="17"><text x="218" y="554" fill="#ff8472">NAVIGATION</text><text x="218" y="586" fill="#806f6b" font-size="14">aliases + jump</text><text x="468" y="554" fill="#ffb467">GIT</text><text x="468" y="586" fill="#806f6b" font-size="14">prompt + config</text><text x="720" y="554" fill="#ffe079">HOSTS</text><text x="720" y="586" fill="#806f6b" font-size="14">SSH routing</text><text x="972" y="554" fill="#82e4ff">HEALTH</text><text x="972" y="586" fill="#6e7980" font-size="14">system status</text><text x="1222" y="554" fill="#b6a4ff">DOCKER</text><text x="1222" y="586" fill="#747080" font-size="14">dev containers</text></g>
+  </g>
+</svg>
